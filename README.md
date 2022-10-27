@@ -73,14 +73,9 @@
 
     vim /opt/mattermost/config/config.json
 
-    /DriverName
-
-    "DriverName": "mysql",
-    "DataSource": "mmuser:<ваш пароль>@tcp(<host-name-or-IP>:3306)/mattermost?charset=utf8mb4,utf8&writeTimeout=30s"
-
     =================================================================
     "DriverName": "mysql",
-    "DataSource": "mmuser:3Rfxtkb_1515818145@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&writeTimeout=30s",
+    "DataSource": "mmuser:<ваш пароль>@tcp(<host-name-or-IP>:3306)/mattermost?charset=utf8mb4,utf8&writeTimeout=30s"
 
     "SiteURL": "http://www.matterchat.ru",
     
