@@ -12,14 +12,15 @@
 * Для Смартфона - воспользуйтесь [Termius](https://termius.com/)  
 * Для MacOS - откройте терминал 
 * Для Windows 10/11 - откройте PowerShell
-Ваедите в консоли
+Введите в консоли  
+
     >>> mkdir /Users/<пользователь>/.sshkeys/mmvm7/
 
     >>> ssh-keygen
     Generating public/private rsa key pair.
     Enter file in which to save the key (/Users/pyshkovni/.ssh/id_rsa): 
-    --> укажи путь /Users/<пользователь>/.sshkeys/id_rsa --> жми Return
-    Enter passphrase (empty for no passphrase): --> введи n12345 (пример)
+    --> укажи путь /Users/<пользователь>/.sshkeys/id_rsa --> нажмите Return
+    Enter passphrase (empty for no passphrase): --> введите n12345 (пример)
 
 
 
@@ -43,21 +44,32 @@
 
 ## Подключение к ВМ
 
-В терминале введите команду ssh _\<login>@\<public ip>_
+В терминале введите команду ssh -i <путь_до_ключа> <login>@\<public ip>_
 
-## Установка программного обеспечения
+## Перейдите в пользователя root
 
     sudo -i
-    
+
+## Обновите репозитории и пакеты
+
     apt update
 
     apt upgrade
 
+## Установите MySQL - систему управления базамт данных MySQL
+
     apt install mysql-server
+
 
     service mysql status
 
+## Зайдите в MySQL
+
     mysql
+
+Появится приветсивие и командная строка SQL
+
+## Создайте пользователя mmuser, определите для него полные права и создайте базу данных mattermost
 
     create user 'mmuser'@'%' identified by '<ваш_пароль>';
 
@@ -67,6 +79,8 @@
 
     GRANT ALTER, CREATE, DELETE, DROP, INDEX, INSERT, SELECT, UPDATE, REFERENCES ON mattermost.* TO 'mmuser'@'%';
     
+Закройте MySQL
+
     exit
 
     wget https://releases.mattermost.com/7.4.0/mattermost-7.4.0-linux-amd64.tar.gz
