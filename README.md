@@ -1,4 +1,4 @@
-# Установка MatterMost 7.0. на Ubuntu 20.04
+# Пошаговая установка MatterMost 7.4. на Ubuntu 20.04
 
 Данный гайд по шагам описывает процесс запуска корпоративного мессенджера с открытым исходным кодом [MatterMost](https://mattermost.com) на виртуальной машине Ubuntu.
 
@@ -7,24 +7,28 @@
 [Ссылка на официальную документацию](https://docs.mattermost.com/install/installing-ubuntu-2004-LTS.html)
 
 
-## Генерация SSH-ключей
+## 1. Генерация SSH-ключей
 Для обеспечения безопасного удаленного доступа к серверу необходимо сгенерировать SSH-ключи.  
 * Для Смартфона - воспользуйтесь [Termius](https://termius.com/)  
 * Для MacOS - откройте терминал 
 * Для Windows 10/11 - откройте PowerShell
-Введите в консоли  
 
-    >>> mkdir /Users/<пользователь>/.sshkeys/mmvm7/
+Введите в консоли команду создания папки для ключей
 
-    >>> ssh-keygen
+    mkdir -p /Users/<пользователь>/.sshkeys/mmvm7/
+
+Сгенерируйте ключи по указанной директории
+
+    ssh-keygen
+
+Вывод консоли на команду ssh-keygen
+
     Generating public/private rsa key pair.
     Enter file in which to save the key (/Users/pyshkovni/.ssh/id_rsa): 
-    --> укажи путь /Users/<пользователь>/.sshkeys/id_rsa --> нажмите Return
+    --> укажите путь /Users/<пользователь>/.sshkeys/mmvm7/id_rsa --> нажмите Return
     Enter passphrase (empty for no passphrase): --> введите n12345 (пример)
 
-
-
-## Создание виртуальной машины
+## 2. Создание виртуальной машины
 Виртуальная машина создавалась в облачном сервисе [Yandex Cloud](https://cloud.yandex.ru). Виртуальную машину можно создать в рамках бесплатного гранда от Yandex Cloud. Для этого зарегистрируйтесь в сервисе и прикрепите платежную карту.
 
 1. Перейдите в сервисах в Compute Cloud
@@ -39,43 +43,55 @@
    * Включите доступ к серийной консоли
 3. Нажмите создать
 
-## Доменное имя
-Купить доменное имя (например, в reg.ru).
+## 3. Доменное имя
+Купить доменное имя без хостинга (например, в [reg.ru](https://www.reg.ru)).
 
-## Подключение к ВМ
+## 4. Подключение к ВМ и подготовка к настройке
 
-В терминале введите команду ssh -i <путь_до_ключа> <login>@\<public ip>_
+В терминале введите команду 
 
-## Перейдите в пользователя root
+    ssh -i /Users/<пользователь>/.sshkeys/mmvm7/ <login>@\<public ip>_
+
+Перейдите в пользователя root
 
     sudo -i
 
-## Обновите репозитории и пакеты
+Обновите репозитории и пакеты
 
     apt update
 
     apt upgrade
 
-## Установите MySQL - систему управления базамт данных MySQL
+## 5. Установка MySQL
+MySQL - это система управления базам данных MySQL  
+Введите команду, чтобы установить пакет
 
     apt install mysql-server
 
+Проверьте статус сервиса. Должно быть _dead_
 
     service mysql status
 
-## Зайдите в MySQL
+Зайдите в MySQL
 
     mysql
 
-Появится приветсивие и командная строка SQL
+Появится приветствие и командная строка SQL
 
-## Создайте пользователя mmuser, определите для него полные права и создайте базу данных mattermost
+### Настройка БД
+Создайте пользователя mmuser,  и 
 
     create user 'mmuser'@'%' identified by '<ваш_пароль>';
 
+Создайте базу данных mattermost
+
     create database mattermost;
 
+Определите для него полные права
+
     grant all privileges on mattermost.* to 'mmuser'@'%';
+
+Предоставьте доступ ко всем командам
 
     GRANT ALTER, CREATE, DELETE, DROP, INDEX, INSERT, SELECT, UPDATE, REFERENCES ON mattermost.* TO 'mmuser'@'%';
     
@@ -83,40 +99,88 @@
 
     exit
 
+## 6. Установка mattermost
+Скачайте архив с программой по ссылке (версия mattermost 7.4.0)
+
     wget https://releases.mattermost.com/7.4.0/mattermost-7.4.0-linux-amd64.tar.gz
+
+Распакуйте архив
 
     tar -xvzf mattermost*.gz
 
+Перенесите распакованную папку mattermost в папку /opt
+
     mv mattermost /opt
+
+Создайте папку /opt/mattermost/data
 
     mkdir /opt/mattermost/data
 
+## 7. Права пользователя mattermost на ВМ
+Создайте пользователя mattermost
+
     useradd --system --user-group mattermost
+
+Задайте владельца каталога /opt/mattermost 
 
     chown -R mattermost:mattermost /opt/mattermost
 
+Определите права владения каталогом /opt/mattermost
+    
     chmod -R g+w /opt/mattermost
 
+## 8. Настройка конфигурации mattermost
+Откройте файл config.json в редакторе vim
+ 
     vim /opt/mattermost/config/config.json
+
+С помощью команды поиска в vim (нажмите /) найдите и отредактируйте следующие строки
 
     =================================================================
     "DriverName": "mysql",
-    "DataSource": "mmuser:<ваш пароль>@tcp(<host-name-or-IP>:3306)/mattermost?charset=utf8mb4,utf8&writeTimeout=30s"
-
-    "SiteURL": "http://www.matterchat.ru",
+    "DataSource": "mmuser:<ваш пароль>@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&writeTimeout=30s"
+    ...
+    "SiteURL": "http://www.<имя>.<домен>",
     
     :wq
     =================================================================
 
+Выйдите из пользователя root
+
+    exit
+
+## 9. Запуск и проверка в работоспособности
+Перейдите в папку /opt/mattermost
+
     cd /opt/mattermost
+
+Запустите mattermost
 
     sudo -u mattermost ./bin/mattermost
 
-    http://84.201.161.192:8065
+Откройте браузер и перейдите по адресу
 
-    Ctrl C
+    http://<Публичный IP-адрес>:8065
+
+По завершению проверки вернитесь терминал и прекратите процесс
+
+    Нажмите сочетание клавиш Ctrl C
+
+## 10. Запуск в фоновом режиме
+Для запуска в фоновом режиме необходимо прописать её в systemd  
+Перейдите в пользователя root
+
+    sudo -i
+
+Создайте файл mattermost.service
 
     touch /lib/systemd/system/mattermost.service
+
+Откройте файл в vim
+
+    vim lib/systemd/system/mattermost.service
+
+Скопируйте настройки ниже и вставьте их в файл
 
     [Unit]
     Description=Mattermost
@@ -140,20 +204,39 @@
       WantedBy=mysql.service
 
 
+Перезапустите systemd
+
     systemctl daemon-reload
+
+Проверьте статус mattermost.service. Должен быть _dead_
 
     systemctl status mattermost.service
 
+Запустите mattermost.service
+
     systemctl start mattermost.service
+
+Установите автоматический запуск mattermost.service при запуске ВМ
 
     systemctl enable mattermost.service
 
-    http://www.matterchat.ru:8065
 
+## 11. Настройка пользователей mattermost
+В браузере перейдите по домену в mattermost либо воспользуйтесь публичным ip-адресом
 
+    http://www.<имя>.<домен>:8065
+    http://<Публичный IP-адрес>:8065
 
-
-
+____
+_раздел в разработке_
+<br>
+<br>
+## Проблемы
+_раздел в разработке_
+<br>
+<br>
+## Настройка сертификата
+_раздел в разработке_
 
 
 
