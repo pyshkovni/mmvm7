@@ -250,5 +250,56 @@ _раздел в разработке_
 _раздел в разработке_
 
 
+## Альтернативный запуск MatterMost через Docker.
+Docker используется для упрощения процесса разработки, тестирования и развертывания приложений. Он позволяет разработчикам упаковывать свое приложение и все необходимые зависимости в один компактный образ, который можно легко переносить между разными средами и операционными системами. Образы Docker могут быть использованы многократно, что снижает затраты на разработку и тестирование.
+
+### Команды для запуска
+[Оффициальная документация](https://docs.mattermost.com/install/install-docker.html#install-docker)<br>
+Подготовить виртуальную машину к работе с docker и docker-compose.
+
+    sudo apt update
+    sudo apt install docker.io
+    sudo apt install docker-compose
+
+Запустить docker в фоновом режиме
+
+    sudo systemctl start docker
+
+Создать группу пользователей docker
+
+    sudo groupadd docker
+
+Добавить текущего пользователя в группу docker
+
+    sudo usermod -aG docker ${USER}
+
+Как только Docker и пользователи будут настроены, запустите следующую команду:
+
+    docker run --name mattermost-preview -d --publish 8065:8065 mattermost/mattermost-preview
+
+Запускаем клонирование репозитория git
+
+    git clone https://github.com/mattermost/docker && cd docker
+
+Скопируем файл конфигурации
+
+    cp env.example .env
+
+Заходим в скопированный файл и редактируем его
+
+    nano env.example .env
+
+В строчке DOMAIN меняем значение `mm.example.com` на публичный ip-адрес виртуальной машины. Делаем это дважды!<br>
+Настраиваем нужные директории
+
+    mkdir -p ./volumes/app/mattermost/{config,data,logs,plugins,client/plugins,bleve-indexes} && sudo chown -R 2000:2000 ./volumes/app/mattermost
+
+Запуск сборка образа mattermost через docker-compose (без NGINX)
+
+    sudo docker-compose -f docker-compose.yml -f docker-compose.without-nginx.yml up -d
+
+В браузере перейдите по ссылке `http://<публичный ip-адрес>:8065`.<br>
+Процесс запуска с docker завершен!
 
 
+    
