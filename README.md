@@ -50,7 +50,7 @@
 
 В терминале введите команду 
 
-    ssh -i /Users/<пользователь>/.sshkeys/mmvm7/ <login>@<public ip>
+    ssh -i /Users/<пользователь>/.sshkeys/mmvm7/id_rsa <login>@<public ip>
 
 Перейдите в пользователя root
 
